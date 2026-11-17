@@ -17,6 +17,96 @@ A reliable event-driven notification platform for carrier and shipper operations
 - Django management dashboard.
 - Prometheus metrics and Grafana monitoring.
 
+
+## System Architecture
+
+The Carrier–Shipper Webhook Notification System uses an event-driven architecture to process load lifecycle events and reliably deliver webhook notifications to carrier and shipper endpoints.
+
+flowchart TB
+    %% Users and External Systems
+    U["Operations User"]
+    C["Carrier Systems"]
+    S["Shipper Systems"]
+
+    %% Frontend
+    subgraph FRONTEND["Presentation Layer"]
+        DJ["Django Management Dashboard"]
+    end
+
+    %% Backend
+    subgraph BACKEND["Application Layer"]
+        API["FastAPI REST API"]
+        AUTH["Authentication & Organization Security"]
+        LOAD["Load / Carrier / Shipper / Driver Management"]
+        EVENT["Event Generation & Subscription Matching"]
+    end
+
+    %% Database
+    subgraph DATA["Data Layer"]
+        DB[("PostgreSQL")]
+    end
+
+    %% Background Processing
+    subgraph WORKERS["Background Processing Layer"]
+        BEAT["Celery Beat / Dispatcher"]
+        REDIS[("Redis Task Broker")]
+        WORKER["Celery Delivery Workers"]
+        RETRY["Retry & Exponential Backoff"]
+        CB["Circuit Breaker"]
+        HMAC["HMAC-SHA256 Signing"]
+    end
+
+    %% External Delivery
+    subgraph EXTERNAL["External Notification Layer"]
+        ENDPOINT["Carrier / Shipper Webhook Endpoints"]
+    end
+
+    %% Monitoring
+    subgraph MONITORING["Monitoring & Observability"]
+        PROM["Prometheus"]
+        GRAF["Grafana Dashboards & Alerts"]
+        METRICS["FastAPI /metrics"]
+    end
+
+    %% User interactions
+    U --> DJ
+    DJ <-->|"HTTP REST API"| API
+
+    %% API processing
+    C --> API
+    S --> API
+    API --> AUTH
+    AUTH --> LOAD
+    LOAD --> EVENT
+
+    %% Persistence
+    AUTH <--> DB
+    LOAD <--> DB
+    EVENT --> DB
+
+    %% Background delivery flow
+    DB -->|"Pending deliveries"| BEAT
+    BEAT -->|"Dispatch tasks"| REDIS
+    REDIS --> WORKER
+    WORKER --> CB
+    CB --> HMAC
+    HMAC -->|"Signed HTTP POST"| ENDPOINT
+
+    %% Delivery results and recovery
+    ENDPOINT -->|"HTTP response"| WORKER
+    WORKER -->|"Update delivery status"| DB
+    WORKER -->|"Failed delivery"| RETRY
+    RETRY -->|"Schedule retry"| REDIS
+    RETRY -->|"Final failure"| DB
+    CB -->|"Circuit state"| DB
+
+    %% Monitoring
+    API --> METRICS
+    METRICS --> PROM
+    PROM --> GRAF
+    WORKER -.->|"Delivery metrics"| PROM
+
+
 ## Technology Stack
 
 | Component | Technology |
