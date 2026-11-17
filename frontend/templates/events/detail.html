@@ -1,0 +1,39 @@
+
+{% extends "base.html" %}
+
+{% block title %}Event Details | Webhook Engine{% endblock %}
+{% block page_heading %}Event Details{% endblock %}
+{% block page_description %}Inspect the event payload and outbox processing information.{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-header">
+        <h2>{{ event.event_type }}</h2>
+        <span class="status-badge">{{ event.outbox_status|default:"pending"|title }}</span>
+    </div>
+
+    <div class="detail-grid">
+        <div>
+            <label>Event ID</label>
+            <p>{{ event.id }}</p>
+        </div>
+        <div>
+            <label>Idempotency Key</label>
+            <p>{{ event.idempotency_key|default:"—" }}</p>
+        </div>
+        <div>
+            <label>Created At</label>
+            <p>{{ event.created_at|default:"—" }}</p>
+        </div>
+        <div>
+            <label>Published At</label>
+            <p>{{ event.published_at|default:"Not published" }}</p>
+        </div>
+    </div>
+
+    <h3>Event Payload</h3>
+    <pre class="json-payload">{{ event.payload|pprint }}</pre>
+
+    <a href="{% url 'event_list' %}" class="btn btn-secondary">Back to Events</a>
+</div>
+{% endblock %}

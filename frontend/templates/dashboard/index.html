@@ -1,0 +1,701 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Webhook Engine{% endblock %}
+
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block page_description %}
+Monitor shipment operations and webhook delivery reliability.
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome -->
+<section class="welcome">
+    <div>
+        <span class="eyebrow">OPERATIONS OVERVIEW</span>
+        <h2>Carrier & Shipper Notification Engine</h2>
+        <p>
+            Monitor shipment events, webhook delivery performance,
+            retries and endpoint health.
+        </p>
+    </div>
+    <div class="welcome-icon">↗</div>
+</section>
+
+
+<!-- Main KPIs -->
+<section class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Loads</span>
+            <span class="stat-icon purple">▣</span>
+        </div>
+        <h2>{{ total_loads }}</h2>
+        <small>Registered shipments</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Events</span>
+            <span class="stat-icon blue">◈</span>
+        </div>
+        <h2>{{ total_events }}</h2>
+        <small>Events recorded</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Successful Deliveries</span>
+            <span class="stat-icon green">✓</span>
+        </div>
+        <h2>{{ successful }}</h2>
+        <small>Notifications delivered</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Failed Deliveries</span>
+            <span class="stat-icon red">!</span>
+        </div>
+        <h2>{{ failed }}</h2>
+        <small>Requires attention</small>
+    </div>
+
+</section>
+
+
+<!-- Webhook Infrastructure -->
+<section class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Webhooks</span>
+            <span class="stat-icon purple">↗</span>
+        </div>
+        <h2>{{ total_webhooks }}</h2>
+        <small>{{ active_webhooks }} active endpoints</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Pending / Retrying</span>
+            <span class="stat-icon blue">↻</span>
+        </div>
+        <h2>{{ pending }}</h2>
+        <small>Awaiting delivery or retry</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Open Circuit Breakers</span>
+            <span class="stat-icon red">!</span>
+        </div>
+        <h2>{{ open_circuits }}</h2>
+        <small>Endpoints requiring attention</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Attempts</span>
+            <span class="stat-icon blue">↗</span>
+        </div>
+        <h2>{{ total_attempts }}</h2>
+        <small>Recorded delivery attempts</small>
+    </div>
+
+</section>
+
+
+<!-- Performance Charts -->
+<section class="content-grid">
+
+    <div class="panel chart-panel">
+
+        <div class="panel-heading">
+            <div>
+                <h3>Webhook Delivery Performance</h3>
+                <p>Distribution of notification delivery statuses</p>
+            </div>
+            <span class="chart-label">ALL TIME</span>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="deliveryChart"></canvas>
+        </div>
+
+        <div class="chart-legend">
+            <span>● Successful: {{ successful }}</span>
+            <span>● Failed: {{ failed }}</span>
+            <span>● Pending: {{ pending }}</span>
+        </div>
+
+    </div>
+
+
+    <div class="panel performance-panel">
+
+        <h3>Delivery Success Rate</h3>
+        <p>Overall notification reliability</p>
+
+        <div class="rate-circle"
+             style="--rate: {{ success_rate }}%;">
+            <div>
+                <strong>{{ success_rate }}%</strong>
+                <small>Success rate</small>
+            </div>
+        </div>
+
+        <div class="performance-row">
+            <span>Total deliveries</span>
+            <strong>{{ total_deliveries }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Successful</span>
+            <strong>{{ successful }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Failed</span>
+            <strong>{{ failed }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Pending / Retrying</span>
+            <strong>{{ pending }}</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Shipment Status -->
+<section class="content-grid">
+
+    <div class="panel chart-panel">
+        <div class="panel-heading">
+            <div>
+                <h3>Shipment Status Distribution</h3>
+                <p>Current status of registered loads</p>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="loadChart"></canvas>
+        </div>
+    </div>
+
+    <div class="panel performance-panel">
+        <h3>Trucking Operations</h3>
+        <p>Current operational overview</p>
+
+        <div class="performance-row">
+            <span>Total loads</span>
+            <strong>{{ total_loads }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Active loads</span>
+            <strong>{{ active_loads }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Carriers</span>
+            <strong>{{ total_carriers }}</strong>
+        </div>
+
+        <div class="performance-row">
+            <span>Drivers</span>
+            <strong>{{ total_drivers }}</strong>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- Delivery Reliability Analytics -->
+<section class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Delivery Reliability Analytics</h3>
+            <p>HTTP responses, retry activity and endpoint response performance</p>
+        </div>
+        <span class="chart-label">ALL ATTEMPTS</span>
+    </div>
+
+    <!-- Reliability KPI Cards -->
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Total Attempts</span>
+                <span class="stat-icon purple">↗</span>
+            </div>
+            <h2>{{ total_attempt_records }}</h2>
+            <small>Recorded HTTP attempts</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Successful Attempts</span>
+                <span class="stat-icon green">✓</span>
+            </div>
+            <h2>{{ successful_attempts }}</h2>
+            <small>HTTP 2xx responses</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Failed Attempts</span>
+                <span class="stat-icon red">!</span>
+            </div>
+            <h2>{{ failed_attempts }}</h2>
+            <small>Non-2xx or missing responses</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Attempt Success Rate</span>
+                <span class="stat-icon blue">%</span>
+            </div>
+            <h2>{{ attempt_success_rate }}%</h2>
+            <small>Successful HTTP attempts</small>
+        </div>
+
+    </section>
+
+    <!-- Response and Retry Metrics -->
+    <section class="content-grid">
+
+        <div class="panel performance-panel">
+            <h3>Response Time Analytics</h3>
+            <p>Recorded HTTP request duration</p>
+
+            <div class="performance-row">
+                <span>Average response time</span>
+                <strong>{{ average_response_time }} ms</strong>
+            </div>
+
+            <div class="performance-row">
+                <span>Minimum response time</span>
+                <strong>{{ minimum_response_time }} ms</strong>
+            </div>
+
+            <div class="performance-row">
+                <span>Maximum response time</span>
+                <strong>{{ maximum_response_time }} ms</strong>
+            </div>
+        </div>
+
+        <div class="panel performance-panel">
+            <h3>Retry Analytics</h3>
+            <p>Delivery retry behaviour</p>
+
+            <div class="performance-row">
+                <span>Deliveries retried</span>
+                <strong>{{ retried_deliveries }}</strong>
+            </div>
+
+            <div class="performance-row">
+                <span>Maximum attempts for one delivery</span>
+                <strong>{{ maximum_delivery_attempts }}</strong>
+            </div>
+
+            <div class="performance-row">
+                <span>Total attempt records</span>
+                <strong>{{ total_attempt_records }}</strong>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- HTTP Status Chart -->
+    <div class="content-grid">
+
+        <div class="panel chart-panel">
+            <div class="panel-heading">
+                <div>
+                    <h3>HTTP Status Distribution</h3>
+                    <p>Breakdown of webhook endpoint responses</p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="httpStatusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel performance-panel">
+            <h3>HTTP Response Summary</h3>
+            <p>Response codes received from webhook endpoints</p>
+
+            {% for status, count in http_status_counts.items %}
+            <div class="performance-row">
+                <span>HTTP {{ status }}</span>
+                <strong>{{ count }}</strong>
+            </div>
+            {% empty %}
+            <p>No HTTP response records available.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Recent Failed Attempts -->
+<section class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Recent Failed Delivery Attempts</h3>
+            <p>Latest unsuccessful webhook requests and error details</p>
+        </div>
+        <span class="chart-label">
+            {{ failed_attempts }} FAILED
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>DELIVERY ID</th>
+                    <th>ATTEMPT</th>
+                    <th>HTTP CODE</th>
+                    <th>DURATION</th>
+                    <th>ERROR DETAILS</th>
+                    <th>STARTED AT</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for attempt in recent_failed_attempts %}
+                <tr>
+                    <td>{{ attempt.delivery_id }}</td>
+                    <td>{{ attempt.attempt_number }}</td>
+                    <td>
+                        <span class="status-badge failed">
+                            {{ attempt.http_status_code|default:"No response" }}
+                        </span>
+                    </td>
+                    <td>{{ attempt.duration_ms|default:"—" }} ms</td>
+                    <td>{{ attempt.error_message|default:"—"|truncatechars:100 }}</td>
+                    <td>{{ attempt.started_at|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        No failed delivery attempts found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<!-- Circuit Breaker Alerts -->
+<section class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Circuit Breaker Alerts</h3>
+            <p>External endpoints currently in an open circuit state</p>
+        </div>
+        <span class="chart-label">
+            {{ open_circuits }} OPEN
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>WEBHOOK</th>
+                    <th>CIRCUIT STATE</th>
+                    <th>CONSECUTIVE FAILURES</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for webhook in circuit_breaker_webhooks %}
+                <tr>
+                    <td>{{ webhook.name }}</td>
+                    <td>
+                        <span class="status-badge failed">
+                            {{ webhook.circuit_state|title }}
+                        </span>
+                    </td>
+                    <td>{{ webhook.consecutive_failures }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="empty-state">
+                        No open circuit breakers. All monitored endpoints
+                        are outside the open state.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<!-- Recent Events -->
+<section class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Recent Load Events</h3>
+            <p>Latest shipment activity and event audit trail</p>
+        </div>
+        <a href="/events/" class="view-link">View all →</a>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>EVENT TYPE</th>
+                    <th>EVENT ID</th>
+                    <th>OUTBOX STATUS</th>
+                    <th>CREATED AT</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for event in recent_events %}
+                <tr>
+                    <td><strong>{{ event.event_type }}</strong></td>
+                    <td>{{ event.id }}</td>
+                    <td>
+                        <span class="status-badge {{ event.outbox_status }}">
+                            {{ event.outbox_status|title }}
+                        </span>
+                    </td>
+                    <td>{{ event.created_at|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        No events available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<!-- Recent Deliveries -->
+<section class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Recent Webhook Deliveries</h3>
+            <p>Latest notification dispatch activity</p>
+        </div>
+        <a href="/deliveries/" class="view-link">View all →</a>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>DELIVERY ID</th>
+                    <th>EVENT TYPE</th>
+                    <th>STATUS</th>
+                    <th>ATTEMPTS</th>
+                    <th>HTTP CODE</th>
+                    <th>CREATED AT</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for delivery in recent_deliveries %}
+                <tr>
+                    <td>{{ delivery.id }}</td>
+                    <td>{{ delivery.event_type }}</td>
+                    <td>
+                        <span class="status-badge {{ delivery.status }}">
+                            {{ delivery.status|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ delivery.attempt_count }}/{{ delivery.max_attempts }}
+                    </td>
+                    <td>
+                        {{ delivery.last_status_code|default:"—" }}
+                    </td>
+                    <td>{{ delivery.created_at|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        No delivery records available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<!-- Chart Data -->
+{{ delivery_chart_data|json_script:"delivery-chart-data" }}
+{{ load_chart_data|json_script:"load-chart-data" }}
+{{ http_status_chart_data|json_script:"http-status-chart-data" }}
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js is not loaded.");
+        return;
+    }
+
+    const deliveryData = JSON.parse(
+        document.getElementById("delivery-chart-data").textContent
+    );
+
+    const loadData = JSON.parse(
+        document.getElementById("load-chart-data").textContent
+    );
+
+    const httpStatusData = JSON.parse(
+        document.getElementById("http-status-chart-data").textContent
+    );
+
+    // Delivery performance chart
+    const deliveryElement = document.getElementById("deliveryChart");
+
+    if (deliveryElement) {
+        new Chart(deliveryElement, {
+            type: "doughnut",
+            data: {
+                labels: deliveryData.map(item => item.label),
+                datasets: [{
+                    data: deliveryData.map(item => item.count),
+                    backgroundColor: [
+                        "#16a36a",
+                        "#e55353",
+                        "#e8a23b",
+                        "#64748b"
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "72%",
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+    }
+
+    // Shipment status chart
+    const loadElement = document.getElementById("loadChart");
+
+    if (loadElement) {
+        new Chart(loadElement, {
+            type: "bar",
+            data: {
+                labels: loadData.map(item => item.label),
+                datasets: [{
+                    label: "Loads",
+                    data: loadData.map(item => item.count),
+                    backgroundColor: "#6255e7",
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // HTTP status distribution chart
+    const httpStatusElement = document.getElementById("httpStatusChart");
+
+    if (httpStatusElement) {
+        const statusColors = httpStatusData.map(item => {
+            const code = parseInt(item.label, 10);
+
+            if (code >= 200 && code < 300) return "#16a36a";
+            if (code >= 400 && code < 500) return "#e8a23b";
+            if (code >= 500) return "#e55353";
+
+            return "#64748b";
+        });
+
+        new Chart(httpStatusElement, {
+            type: "doughnut",
+            data: {
+                labels: httpStatusData.map(item => "HTTP " + item.label),
+                datasets: [{
+                    data: httpStatusData.map(item => item.count),
+                    backgroundColor: statusColors,
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "68%",
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+    }
+
+});
+</script>
+
+{% endblock %}

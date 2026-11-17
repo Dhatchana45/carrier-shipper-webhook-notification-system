@@ -1,0 +1,58 @@
+
+{% extends "base.html" %}
+
+{% block title %}Create Event | Webhook Engine{% endblock %}
+{% block page_heading %}Create Event{% endblock %}
+{% block page_description %}Publish a new business event to the delivery engine.{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        {% if error %}
+            <div class="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="event_type">Event Type</label>
+            <input
+                type="text"
+                id="event_type"
+                name="event_type"
+                placeholder="shipment.created"
+                value="{{ form_data.event_type|default:'' }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="idempotency_key">Idempotency Key</label>
+            <input
+                type="text"
+                id="idempotency_key"
+                name="idempotency_key"
+                placeholder="SHIPMENT-1002-CREATED"
+                value="{{ form_data.idempotency_key|default:'' }}"
+            >
+            <small>Use a unique key to prevent duplicate event submissions.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="payload">Event Payload (JSON)</label>
+            <textarea
+                id="payload"
+                name="payload"
+                rows="12"
+                required
+                placeholder='{"shipment_id":"SHIPMENT-1002","status":"created","origin":"Coimbatore","destination":"Chennai"}'
+            >{{ form_data.payload|default:'' }}</textarea>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <button type="submit" class="btn btn-primary">Create Event</button>
+            <a href="{% url 'event_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

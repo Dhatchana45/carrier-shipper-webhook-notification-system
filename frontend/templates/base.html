@@ -1,0 +1,236 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Webhook Engine{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+{% with role=request.session.api_role username=request.session.api_user.username %}
+
+<div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">W</div>
+
+            <div class="brand-text">
+                <h2>Webhook Engine</h2>
+                <small>Delivery Platform</small>
+            </div>
+        </div>
+
+        <!-- Workspace Navigation -->
+        <div class="nav-label">WORKSPACE</div>
+
+        <nav class="sidebar-nav">
+
+            <a href="/"
+               class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/webhooks/"
+               class="nav-item {% if active_page == 'webhooks' %}active{% endif %}">
+                <span class="nav-icon">↗</span>
+                <span>Webhooks</span>
+            </a>
+
+            <a href="/events/"
+               class="nav-item {% if active_page == 'events' %}active{% endif %}">
+                <span class="nav-icon">◈</span>
+                <span>Events</span>
+            </a>
+
+            <a href="/deliveries/"
+               class="nav-item {% if active_page == 'deliveries' %}active{% endif %}">
+                <span class="nav-icon">⇄</span>
+                <span>Deliveries</span>
+            </a>
+
+            <a href="/monitoring/"
+               class="nav-item {% if active_page == 'monitoring' %}active{% endif %}">
+                <span class="nav-icon">◉</span>
+                <span>Monitoring</span>
+            </a>
+
+        </nav>
+
+        <!-- Trucking Navigation -->
+        <div class="nav-label trucking-nav-label">
+            TRUCKING MANAGEMENT
+        </div>
+
+        <nav class="sidebar-nav trucking-sidebar-nav">
+
+            {% if role == "admin" or role == "carrier" %}
+            <a href="{% url 'carrier_list' %}"
+               class="nav-item {% if active_page == 'carriers' %}active{% endif %}">
+                <span class="nav-icon">🚚</span>
+                <span>Carriers</span>
+            </a>
+            {% endif %}
+
+            {% if role == "admin" or role == "shipper" %}
+            <a href="{% url 'shipper_list' %}"
+               class="nav-item {% if active_page == 'shippers' %}active{% endif %}">
+                <span class="nav-icon">📦</span>
+                <span>Shippers</span>
+            </a>
+            {% endif %}
+
+            {% if role == "admin" or role == "carrier" %}
+            <a href="{% url 'driver_list' %}"
+               class="nav-item {% if active_page == 'drivers' %}active{% endif %}">
+                <span class="nav-icon">👨‍✈️</span>
+                <span>Drivers</span>
+            </a>
+            {% endif %}
+
+            {% if role == "admin" or role == "carrier" or role == "shipper" %}
+            <a href="{% url 'load_list' %}"
+               class="nav-item {% if active_page == 'loads' %}active{% endif %}">
+                <span class="nav-icon">🚛</span>
+                <span>Loads</span>
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-bottom">
+
+            <div class="connection-status">
+                <span class="status-dot"></span>
+                <span>Backend connection</span>
+            </div>
+
+            <small>FastAPI · Port 8000</small>
+
+            <!-- User Account -->
+            <div class="sidebar-user">
+
+                <div class="user-avatar">
+                    {% if username %}
+                        {{ username|first|upper }}
+                    {% else %}
+                        U
+                    {% endif %}
+                </div>
+
+                <div class="user-details">
+                    <strong>{{ username|default:"User" }}</strong>
+                    <small>{{ role|default:"Account"|title }}</small>
+                </div>
+
+            </div>
+
+            <!-- Logout -->
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+
+                <button type="submit" class="logout-button">
+                    <span>↪</span>
+                    <span>Logout</span>
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+
+        <!-- Topbar -->
+        <header class="topbar">
+
+            <div class="page-title">
+                <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+
+                <p>
+                    {% block page_description %}
+                    Monitor your webhook delivery infrastructure.
+                    {% endblock %}
+                </p>
+            </div>
+
+            <div class="topbar-right">
+
+                <span class="live-indicator">
+                    <span class="live-dot"></span>
+                    SYSTEM OVERVIEW
+                </span>
+
+                <div class="avatar">
+                    {% if username %}
+                        {{ username|first|upper }}
+                    {% else %}
+                        U
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- Page Content -->
+        <section class="page-body">
+
+            <!-- Django Messages -->
+            {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                        <div class="alert-message alert-{{ message.tags }}">
+                            <span class="alert-icon">
+                                {% if message.tags == "success" %}
+                                    ✓
+                                {% elif message.tags == "error" %}
+                                    !
+                                {% else %}
+                                    ℹ
+                                {% endif %}
+                            </span>
+
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            Reliable Webhook Delivery Engine
+            <span>·</span>
+            Django Frontend
+        </footer>
+
+    </main>
+
+</div>
+
+{% endwith %}
+
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

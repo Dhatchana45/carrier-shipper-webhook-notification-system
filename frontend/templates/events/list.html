@@ -1,0 +1,104 @@
+
+{% extends "base.html" %}
+
+{% block title %}Events | Webhook Engine{% endblock %}
+{% block page_heading %}Events{% endblock %}
+{% block page_description %}View and manage events submitted to the webhook delivery engine.{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-actions">
+    <div>
+        <h2>Event History</h2>
+        <p>Review incoming events and their outbox processing status.</p>
+    </div>
+
+    <a href="{% url 'event_create' %}" class="btn btn-primary">
+        + Create Event
+    </a>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<!-- Events Table -->
+<div class="panel">
+    <div class="panel-heading">
+        <div>
+            <h3>All Events</h3>
+            <p>Events received by the webhook engine</p>
+        </div>
+        <span class="live-indicator">EVENT LOG</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>EVENT TYPE</th>
+                    <th>EVENT ID</th>
+                    <th>IDEMPOTENCY KEY</th>
+                    <th>OUTBOX STATUS</th>
+                    <th>CREATED AT</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>
+                        <strong>{{ event.event_type }}</strong>
+                    </td>
+
+                    <td title="{{ event.id }}">
+                        {{ event.id|truncatechars:14 }}
+                    </td>
+
+                    <td>
+                        {{ event.idempotency_key|default:"—" }}
+                    </td>
+
+                    <td>
+                        {% with status=event.outbox_status|default:"pending"|lower %}
+                            <span class="status-badge {{ status }}">
+                                {{ status|title }}
+                            </span>
+                        {% endwith %}
+                    </td>
+
+                    <td>
+                        {{ event.created_at|default:"—" }}
+                    </td>
+
+                    <td>
+                        <a href="{% url 'event_detail' event.id %}" class="view-link">
+                            View Details →
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <h3>No Events Found</h3>
+                            <p>There are no events available yet.</p>
+                            <a href="{% url 'event_create' %}" class="btn btn-primary">
+                                Create Your First Event
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

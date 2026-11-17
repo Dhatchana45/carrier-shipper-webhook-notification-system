@@ -1,0 +1,63 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-actions">
+    <div>
+        <h1>Carriers</h1>
+        <p>Manage transportation companies.</p>
+    </div>
+
+    {% if request.session.api_role == "admin" %}
+    <a href="{% url 'carrier_create' %}" class="btn btn-primary">
+        + Add Carrier
+    </a>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <div class="panel-heading">
+        <h2>Carrier Directory</h2>
+        <span>{{ carriers|length }} carriers</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Carrier Name</th>
+                    <th>Code</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for carrier in carriers %}
+                <tr>
+                    <td>{{ carrier.name }}</td>
+                    <td>{{ carrier.code }}</td>
+                    <td>{{ carrier.contact_email|default:"—" }}</td>
+                    <td>{{ carrier.phone|default:"—" }}</td>
+                    <td>
+                        {% if carrier.is_active %}
+                            <span class="status-badge success">Active</span>
+                        {% else %}
+                            <span class="status-badge failed">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            No carriers found. Add your first carrier.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

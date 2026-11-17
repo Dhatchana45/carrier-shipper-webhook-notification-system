@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Deliveries | Webhook Engine{% endblock %}
+{% block page_heading %}Deliveries{% endblock %}
+{% block page_description %}Monitor webhook delivery status, retries and execution history.{% endblock %}
+
+{% block content %}
+
+<div class="page-actions">
+    <div>
+        <h2>Delivery History</h2>
+        <p>Track event delivery attempts across registered webhooks.</p>
+    </div>
+
+    <span class="live-indicator">DELIVERY MONITOR</span>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Deliveries</span>
+            <span class="stat-icon purple">D</span>
+        </div>
+        <h2>{{ deliveries|length }}</h2>
+        <small>Records returned by the API</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Successful</span>
+            <span class="stat-icon green">✓</span>
+        </div>
+        <h2>{{ successful_count }}</h2>
+        <small>Successfully delivered</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Failed</span>
+            <span class="stat-icon red">!</span>
+        </div>
+        <h2>{{ failed_count }}</h2>
+        <small>Exhausted delivery attempts</small>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Pending / Retrying</span>
+            <span class="stat-icon blue">↻</span>
+        </div>
+        <h2>{{ pending_count }}</h2>
+        <small>Awaiting delivery or retry</small>
+    </div>
+
+</div>
+
+<div class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>All Deliveries</h3>
+            <p>Delivery records from the webhook engine</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>DELIVERY ID</th>
+                    <th>EVENT ID</th>
+                    <th>STATUS</th>
+                    <th>ATTEMPTS</th>
+                    <th>HTTP CODE</th>
+                    <th>CREATED AT</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for delivery in deliveries %}
+                <tr>
+                    <td title="{{ delivery.id }}">
+                        {{ delivery.id|truncatechars:14 }}
+                    </td>
+
+                    <td title="{{ delivery.event_id }}">
+                        {{ delivery.event_id|truncatechars:14 }}
+                    </td>
+
+                    <td>
+                        {% with status=delivery.status|lower %}
+                            <span class="status-badge {{ status }}">
+                                {{ status|title }}
+                            </span>
+                        {% endwith %}
+                    </td>
+
+                    <td>
+                        {{ delivery.attempt_count|default:0 }}/{{ delivery.max_attempts|default:8 }}
+                    </td>
+
+                    <td>
+                        {{ delivery.last_status_code|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ delivery.created_at|default:"—" }}
+                    </td>
+
+                    <td>
+                        <a href="{% url 'delivery_detail' delivery.id %}" class="view-link">
+                            View Details →
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <h3>No Deliveries Found</h3>
+                            <p>Delivery records will appear when events are matched with subscribed webhooks.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

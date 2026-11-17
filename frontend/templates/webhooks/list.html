@@ -1,0 +1,150 @@
+
+{% extends "base.html" %}
+
+{% block title %}Webhooks | Webhook Engine{% endblock %}
+
+{% block page_heading %}Webhook Management{% endblock %}
+
+{% block page_description %}
+Manage registered webhook endpoints, subscriptions and circuit breakers.
+{% endblock %}
+
+{% block content %}
+
+<div class="page-actions">
+    <div>
+        <h2>Registered Webhooks</h2>
+        <p>Manage and monitor your webhook endpoints.</p>
+    </div>
+
+    <a href="{% url 'webhook_create' %}" class="btn btn-primary">
+        + Create Webhook
+    </a>
+</div>
+
+<!-- Filter buttons -->
+<div class="filter-buttons">
+
+    <a href="{% url 'webhook_list' %}"
+       class="{% if active_filter == 'all' %}active{% endif %}">
+        All
+    </a>
+
+    <a href="?status=active"
+       class="{% if active_filter == 'active' %}active{% endif %}">
+        Active
+    </a>
+
+    <a href="?status=inactive"
+       class="{% if active_filter == 'inactive' %}active{% endif %}">
+        Inactive
+    </a>
+
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Webhook table -->
+<div class="panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>All Webhooks</h3>
+            <p>Registered webhook destinations and configurations.</p>
+        </div>
+
+        <span class="live-indicator">WEBHOOK REGISTRY</span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Webhook Name</th>
+                    <th>Target URL</th>
+                    <th>Subscribed Events</th>
+                    <th>Status</th>
+                    <th>Circuit Breaker</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for webhook in webhooks %}
+
+                <tr>
+                    <td>
+                        <strong>{{ webhook.name }}</strong>
+                    </td>
+
+                    <td>
+                        <span title="{{ webhook.target_url }}">
+                            {{ webhook.target_url|truncatechars:35 }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ webhook.subscribed_event_types|join:", " }}
+                    </td>
+
+                    <td>
+                        {% if webhook.is_active %}
+                            <span class="status-badge success">Active</span>
+                        {% else %}
+                            <span class="status-badge failed">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% with circuit=webhook.circuit_state|default:"closed"|lower %}
+                            <span class="status-badge {% if circuit == 'open' %}failed{% elif circuit == 'half_open' %}pending{% else %}success{% endif %}">
+                                {{ circuit|title }}
+                            </span>
+                        {% endwith %}
+                    </td>
+
+                    <td>
+                        <a class="view-link"
+                           href="{% url 'webhook_edit' webhook.id %}">
+                            Edit
+                        </a>
+
+                        <a class="view-link"
+                           href="{% url 'webhook_delete' webhook.id %}">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <h3>No webhooks found</h3>
+                            <p>Create a webhook endpoint to start receiving event notifications.</p>
+                            <a href="{% url 'webhook_create' %}" class="btn btn-primary">
+                                Create Webhook
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-actions">
+    <div>
+        <h1>Loads</h1>
+        <p>Track shipments, assignments, and delivery status.</p>
+    </div>
+
+    <a href="{% url 'load_create' %}" class="btn btn-primary">
+        + Create Load
+    </a>
+</div>
+
+<div class="panel">
+    <div class="panel-heading">
+        <h2>Load Management</h2>
+        <span>{{ loads|length }} loads</span>
+    </div>
+
+    <div class="table-wrapper loads-table-wrapper">
+        <table class="loads-table">
+            <thead>
+                <tr>
+                    <th>Load Number</th>
+                    <th>Route</th>
+                    <th>Assignment</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for load in loads %}
+                <tr>
+                    <td>
+                        <strong>{{ load.load_number }}</strong>
+                    </td>
+
+                    <td>
+                        <div>{{ load.origin }}</div>
+                        <div class="text-muted">to {{ load.destination }}</div>
+                    </td>
+
+                    <td>
+                        <form
+                            method="post"
+                            action="{% url 'load_assign' load.id %}"
+                            class="load-action-form assignment-form"
+                        >
+                            {% csrf_token %}
+
+                            <select name="carrier_id" required>
+                                <option value="">Select Carrier</option>
+                                {% for carrier in carriers %}
+                                <option
+                                    value="{{ carrier.id }}"
+                                    {% if carrier.id == load.carrier_id %}selected{% endif %}
+                                >
+                                    {{ carrier.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="driver_id" required>
+                                <option value="">Select Driver</option>
+                                {% for driver in drivers %}
+                                <option
+                                    value="{{ driver.id }}"
+                                    {% if driver.id == load.driver_id %}selected{% endif %}
+                                >
+                                    {{ driver.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <button type="submit" class="btn btn-primary">
+                                Assign
+                            </button>
+                        </form>
+                    </td>
+
+                    <td class="status-cell">
+                        <span class="status-badge">
+                            {{ load.status|default:"created"|title }}
+                        </span>
+
+                        <form
+                            method="post"
+                            action="{% url 'load_update_status' load.id %}"
+                            class="load-action-form status-form"
+                        >
+                            {% csrf_token %}
+
+                            <select name="status" required>
+                                {% for status in load_statuses %}
+                                <option
+                                    value="{{ status }}"
+                                    {% if status == load.status %}selected{% endif %}
+                                >
+                                    {{ status|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <button type="submit" class="btn btn-primary">
+                                Update
+                            </button>
+                        </form>
+                    </td>
+
+                    <td class="created-cell">
+                        {{ load.created_at|default:"—" }}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            No loads found. Create your first load.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

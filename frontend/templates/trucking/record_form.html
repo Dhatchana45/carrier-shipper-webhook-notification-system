@@ -1,0 +1,65 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-actions">
+    <div>
+        <h1>{{ page_title }}</h1>
+        <p>Create a new {{ page_title|lower }} record.</p>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-heading">
+        <h2>{{ page_title }} Details</h2>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            {% for field in form_fields %}
+            <div class="form-group">
+                <label for="{{ field.name }}">
+                    {{ field.label }}
+                    {% if field.required %}*{% endif %}
+                </label>
+
+                {% if field.is_select %}
+                    <select
+                        name="{{ field.name }}"
+                        id="{{ field.name }}"
+                        {% if field.required %}required{% endif %}
+                    >
+                        <option value="">Select {{ field.label }}</option>
+                        {% for choice in field.choices %}
+                        <option value="{{ choice.value }}">
+                            {{ choice.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input
+                        type="text"
+                        name="{{ field.name }}"
+                        id="{{ field.name }}"
+                        placeholder="Enter {{ field.label|lower }}"
+                        {% if field.required %}required{% endif %}
+                    >
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="page-actions">
+            <button type="submit" class="btn btn-primary">
+                Create {{ page_title }}
+            </button>
+
+            <a href="javascript:history.back()" class="btn">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

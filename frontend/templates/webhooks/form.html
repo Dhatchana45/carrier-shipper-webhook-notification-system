@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_edit %}Edit Webhook{% else %}Create Webhook{% endif %} | Webhook Engine</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <aside class="sidebar">
+        <h2>Webhook Engine</h2>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/webhooks/" class="active">Webhooks</a>
+            <a href="/events/">Events</a>
+            <a href="/deliveries/">Deliveries</a>
+            <a href="/monitoring/">Monitoring</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>{% if is_edit %}Edit Webhook{% else %}Create Webhook{% endif %}</h1>
+                <p>Configure your webhook endpoint and event subscriptions.</p>
+            </div>
+            <a href="{% url 'webhook_list' %}" class="btn-secondary">Back to Webhooks</a>
+        </header>
+
+        <section class="content-section">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="name">Webhook Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{% if form_data %}{{ form_data.name }}{% elif webhook %}{{ webhook.name }}{% endif %}"
+                        placeholder="Carrier Tracking Webhook"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="target_url">Target URL</label>
+                    <input
+                        type="url"
+                        id="target_url"
+                        name="target_url"
+                        value="{% if form_data %}{{ form_data.target_url }}{% elif webhook %}{{ webhook.target_url }}{% endif %}"
+                        placeholder="https://example.com/webhook"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="secret">Webhook Secret</label>
+                    <input
+                        type="password"
+                        id="secret"
+                        name="secret"
+                        placeholder="{% if is_edit %}Leave blank to keep existing secret{% else %}Optional — generated automatically if blank{% endif %}"
+                    >
+                    <small>
+                        {% if is_edit %}
+                            Leave blank to retain the existing secret.
+                        {% else %}
+                            Leave blank to let the backend generate a secret.
+                        {% endif %}
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="subscribed_event_types">Subscribed Event Types</label>
+                    <textarea
+                        id="subscribed_event_types"
+                        name="subscribed_event_types"
+                        rows="5"
+                        placeholder="shipment.created&#10;shipment.dispatched&#10;shipment.delivered"
+                        required
+                    >{% if form_data %}
+    {{ form_data.subscribed_event_types }}
+{% elif webhook %}
+    {{ webhook.subscribed_event_types|join:", " }}
+{% endif %}</textarea>
+                    <small>Enter one event type per line, or separate them with commas.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="is_active"
+                            {% if is_edit %}
+                                {% if webhook.is_active %}checked{% endif %}
+                            {% else %}
+                                checked
+                            {% endif %}
+                        >
+                        Webhook Active
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    {% if is_edit %}Save Changes{% else %}Create Webhook{% endif %}
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

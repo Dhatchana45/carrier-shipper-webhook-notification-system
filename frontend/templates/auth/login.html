@@ -1,0 +1,183 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Webhook Engine</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <style>
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #f5f6fa;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            background: #fff;
+            border: 1px solid #e7e9ef;
+            border-radius: 14px;
+            box-shadow: 0 12px 35px rgba(20, 30, 60, 0.08);
+        }
+
+        .login-brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-brand-icon {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            border-radius: 12px;
+            background: #962067;
+            color: white;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .login-brand h1 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        .login-brand p {
+            margin-top: 7px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .login-field {
+            margin-bottom: 18px;
+        }
+
+        .login-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .login-field input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 13px;
+            border: 1px solid #dfe2e8;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .login-field input:focus {
+            outline: none;
+            border-color: #962067;
+            box-shadow: 0 0 0 3px rgba(150, 32, 103, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 13px;
+            border: 0;
+            border-radius: 8px;
+            background: #962067;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-button:hover {
+            background: #7d1855;
+        }
+
+        .login-messages {
+            margin-bottom: 18px;
+        }
+
+        .login-message {
+            padding: 11px 13px;
+            margin-bottom: 8px;
+            border-radius: 7px;
+            background: #fff0f0;
+            color: #a12626;
+            font-size: 13px;
+        }
+
+        .login-footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="login-brand">
+            <div class="login-brand-icon">W</div>
+            <h1>Webhook Engine</h1>
+            <p>Sign in to your Delivery Platform</p>
+        </div>
+
+        {% if messages %}
+            <div class="login-messages">
+                {% for message in messages %}
+                    <div class="login-message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="login-field">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ email|default:'' }}"
+                    placeholder="Enter your email"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="login-field">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="login-button">
+                Sign In
+            </button>
+        </form>
+
+        <div class="login-footer">
+            Reliable Webhook Delivery Engine
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

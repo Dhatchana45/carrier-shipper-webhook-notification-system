@@ -1,0 +1,185 @@
+
+{% extends "base.html" %}
+
+{% block title %}Monitoring | Webhook Engine{% endblock %}
+{% block page_heading %}System Monitoring{% endblock %}
+
+{% block page_description %}
+Monitor API availability, database connectivity and application metrics.
+{% endblock %}
+
+{% block content %}
+
+<div class="page-actions">
+    <div>
+        <h2>Infrastructure Overview</h2>
+        <p>Monitor your webhook delivery infrastructure.</p>
+    </div>
+
+    <a href="{% url 'monitoring' %}" class="btn btn-primary">
+        Refresh Monitoring
+    </a>
+</div>
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <div>
+                <p>FastAPI Service</p>
+                <h2>{{ health_status }}</h2>
+            </div>
+            <div class="stat-icon purple">API</div>
+        </div>
+
+        <p class="monitor-detail">
+            {% if health_time %}
+                Response time: {{ health_time }} ms
+            {% else %}
+                Response time unavailable
+            {% endif %}
+        </p>
+
+        {% if health_error %}
+            <p class="monitor-error">{{ health_error }}</p>
+        {% endif %}
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <div>
+                <p>PostgreSQL Database</p>
+                <h2>{{ database_status }}</h2>
+            </div>
+            <div class="stat-icon blue">DB</div>
+        </div>
+
+        <p class="monitor-detail">
+            {% if database_time %}
+                Response time: {{ database_time }} ms
+            {% else %}
+                Response time unavailable
+            {% endif %}
+        </p>
+
+        {% if database_error %}
+            <p class="monitor-error">{{ database_error }}</p>
+        {% endif %}
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <div>
+                <p>Prometheus Metrics</p>
+                <h2>{{ metrics_status }}</h2>
+            </div>
+            <div class="stat-icon green">MET</div>
+        </div>
+
+        <p class="monitor-detail">
+            {{ metric_summary|length }} metric types available
+        </p>
+
+        {% if metrics_error %}
+            <p class="monitor-error">{{ metrics_error }}</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<div class="panel monitoring-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Monitoring Tools</h3>
+            <p>Access your monitoring infrastructure.</p>
+        </div>
+    </div>
+
+    <div class="monitoring-links">
+
+        <div class="monitoring-link-item">
+            <div>
+                <h4>Grafana Dashboard</h4>
+                <p>
+                    Monitor delivery success, failures, retries,
+                    circuit breakers and alert notifications.
+                </p>
+            </div>
+
+            <a href="{{ grafana_url }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn btn-primary">
+                Open Grafana
+            </a>
+        </div>
+
+        <div class="monitoring-link-item">
+            <div>
+                <h4>Prometheus</h4>
+                <p>
+                    Inspect collected metrics, queries and
+                    monitoring target status.
+                </p>
+            </div>
+
+            <a href="{{ prometheus_url }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn btn-secondary">
+                Open Prometheus
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<div class="panel monitoring-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Application Metrics</h3>
+            <p>Metrics currently exposed by the FastAPI application.</p>
+        </div>
+
+        <span class="live-indicator">PROMETHEUS</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric Name</th>
+                    <th>Aggregated Value</th>
+                    <th>Samples</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for metric in metric_summary %}
+                <tr>
+                    <td><strong>{{ metric.name }}</strong></td>
+                    <td>{{ metric.value }}</td>
+                    <td>{{ metric.samples }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <h3>No metrics found</h3>
+                            <p>
+                                Check the FastAPI /metrics endpoint
+                                and Prometheus configuration.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Details | Webhook Engine{% endblock %}
+{% block page_heading %}Delivery Details{% endblock %}
+{% block page_description %}
+Inspect delivery execution, HTTP responses and retry history.
+{% endblock %}
+
+{% block content %}
+
+<div class="page-actions">
+    <div>
+        <h2>Delivery Information</h2>
+        <p>Detailed delivery execution and retry information.</p>
+    </div>
+
+    <a href="{% url 'delivery_list' %}" class="btn btn-secondary">
+        ← Back to Deliveries
+    </a>
+</div>
+
+{% if delivery %}
+
+<div class="detail-container">
+
+    <div class="detail-header">
+        <div>
+            <h2>Delivery Overview</h2>
+            <p style="color:#8993a5; font-size:11px; margin-top:7px;">
+                {{ delivery.id }}
+            </p>
+        </div>
+
+        {% with status=delivery.status|lower %}
+            <span class="status-badge {{ status }}">
+                {{ status|title }}
+            </span>
+        {% endwith %}
+    </div>
+
+    <div class="detail-grid">
+
+        <div>
+            <label>Delivery ID</label>
+            <p>{{ delivery.id }}</p>
+        </div>
+
+        <div>
+            <label>Event ID</label>
+            <p>{{ delivery.event_id }}</p>
+        </div>
+
+        <div>
+            <label>Webhook ID</label>
+            <p>{{ delivery.webhook_id }}</p>
+        </div>
+
+        <div>
+            <label>Attempt Count</label>
+            <p>
+                {{ delivery.attempt_count }} / {{ delivery.max_attempts }}
+            </p>
+        </div>
+
+        <div>
+            <label>Last HTTP Status Code</label>
+            <p>{{ delivery.last_status_code|default:"Not available" }}</p>
+        </div>
+
+        <div>
+            <label>Next Retry At</label>
+            <p>{{ delivery.next_attempt_at|default:"Not scheduled" }}</p>
+        </div>
+
+        <div>
+            <label>Created At</label>
+            <p>{{ delivery.created_at|default:"—" }}</p>
+        </div>
+
+        <div>
+            <label>Delivered At</label>
+            <p>{{ delivery.delivered_at|default:"Not delivered" }}</p>
+        </div>
+
+    </div>
+
+    <h3>Last Delivery Error</h3>
+
+    <pre class="json-payload">{{ delivery.last_error|default:"No delivery error recorded." }}</pre>
+
+</div>
+
+<!-- Delivery Attempt History -->
+
+<div class="panel recent-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Delivery Attempt History</h3>
+            <p>HTTP request and response information for each attempt.</p>
+        </div>
+
+        <span class="live-indicator">
+            {{ attempts|length }} ATTEMPTS
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ATTEMPT</th>
+                    <th>HTTP STATUS</th>
+                    <th>DURATION</th>
+                    <th>STARTED AT</th>
+                    <th>COMPLETED AT</th>
+                    <th>RESULT</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td>
+                        <strong>#{{ attempt.attempt_number }}</strong>
+                    </td>
+
+                    <td>
+                        {{ attempt.http_status_code|default:"—" }}
+                    </td>
+
+                    <td>
+                        {% if attempt.duration_ms != None %}
+                            {{ attempt.duration_ms }} ms
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>{{ attempt.started_at|default:"—" }}</td>
+
+                    <td>{{ attempt.completed_at|default:"—" }}</td>
+
+                    <td>
+                        <span class="status-badge {{ attempt.result_class }}">
+                            {{ attempt.result_status }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            No delivery attempts recorded yet.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Individual Attempt Responses -->
+
+    {% for attempt in attempts %}
+
+    <div style="padding:20px 0; border-top:1px solid #edf0f5;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+            <h4 style="font-size:13px; margin:0;">
+                Attempt #{{ attempt.attempt_number }} — Response Details
+            </h4>
+
+            <span class="status-badge {{ attempt.result_class }}">
+                {{ attempt.result_status }}
+            </span>
+        </div>
+
+        <div class="detail-grid">
+
+            <div>
+                <label>HTTP Status Code</label>
+                <p>{{ attempt.http_status_code|default:"No response" }}</p>
+            </div>
+
+            <div>
+                <label>Duration</label>
+                <p>
+                    {% if attempt.duration_ms != None %}
+                        {{ attempt.duration_ms }} ms
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+
+            <div>
+                <label>Started At</label>
+                <p>{{ attempt.started_at|default:"—" }}</p>
+            </div>
+
+            <div>
+                <label>Completed At</label>
+                <p>{{ attempt.completed_at|default:"Still processing" }}</p>
+            </div>
+
+        </div>
+
+        <h4 style="font-size:12px; margin:16px 0 8px;">
+            Error Details
+        </h4>
+
+        <pre class="json-payload">{{ attempt.error_message|default:"No error recorded." }}</pre>
+
+        <h4 style="font-size:12px; margin:16px 0 8px;">
+            Response Body
+        </h4>
+
+        <pre class="json-payload">{{ attempt.response_body|default:"No response body recorded." }}</pre>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="panel">
+    <div class="empty-state">
+        <h3>Delivery Not Found</h3>
+        <p>Unable to retrieve this delivery from the API.</p>
+
+        <a href="{% url 'delivery_list' %}" class="btn btn-primary">
+            Back to Deliveries
+        </a>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
