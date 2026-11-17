@@ -21,7 +21,7 @@ A reliable event-driven notification platform for carrier and shipper operations
 ## System Architecture
 
 The Carrier–Shipper Webhook Notification System uses an event-driven architecture to process load lifecycle events and reliably deliver webhook notifications to carrier and shipper endpoints.
-
+```mermaid
 flowchart TB
     %% Users and External Systems
     U["Operations User"]
@@ -105,7 +105,7 @@ flowchart TB
     METRICS --> PROM
     PROM --> GRAF
     WORKER -.->|"Delivery metrics"| PROM
-
+```
 
 ## Technology Stack
 
